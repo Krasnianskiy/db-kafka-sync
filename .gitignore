@@ -25,3 +25,4 @@ pom.xml.backup
 # OS specific files
 Thumbs.db
 .DS_Store
+/.idea/
