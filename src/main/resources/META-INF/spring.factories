@@ -1,0 +1,4 @@
+# Auto Configure
+org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
+com.vkras.db.kafka.sync.config.KafkaDbSyncAutoConfiguration\
+org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration
