@@ -5,12 +5,14 @@ import com.vkras.db.kafka.sync.annotation.handlers.Converter;
 import com.vkras.db.kafka.sync.config.SynchronizedProperties;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.hibernate.event.spi.PostUpdateEvent;
 import org.hibernate.event.spi.PostUpdateEventListener;
 import org.hibernate.persister.entity.EntityPersister;
 
+@Slf4j
 public class KafkaSyncEntityListener implements PostUpdateEventListener {
 
     private final SynchronizedProperties properties;
@@ -34,7 +36,13 @@ public class KafkaSyncEntityListener implements PostUpdateEventListener {
                 Converter converter = type.getAnnotation(SynchronizedTable.class).converter().newInstance();
                 Object resultEntity = converter.convert(entity);
                 ProducerRecord<String, Object> record = new ProducerRecord<>(tableName, resultEntity);
-                kafkaProducer.send(record);
+                kafkaProducer.send(record, (recordMetadata, e) -> {
+                    // During the producer error - rollback data save
+                    log.error("Error sending message to Kafka, \n Partition: {}, \n Error: {}",
+                            recordMetadata.partition(), e.getMessage());
+                    postUpdateEvent.getSession().getTransaction().rollback();
+                });
+                postUpdateEvent.getSession().getTransaction().rollback();
             } catch (InstantiationException | IllegalAccessException e) {
                 throw new RuntimeException(e);
             }
