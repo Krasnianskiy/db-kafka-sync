@@ -1,0 +1,27 @@
+# IntelliJ IDEA specific files
+.idea/
+*.iml
+
+# Gradle specific files
+.gradle/
+build/
+
+# Maven specific files
+target/
+pom.xml.backup
+
+# Eclipse specific files
+.classpath
+.project
+.settings/
+
+# Other generated files
+*.class
+*.jar
+*.log
+*.tmp
+*.bak
+
+# OS specific files
+Thumbs.db
+.DS_Store
