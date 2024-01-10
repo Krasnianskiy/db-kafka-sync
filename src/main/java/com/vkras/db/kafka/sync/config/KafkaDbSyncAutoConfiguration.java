@@ -1,12 +1,17 @@
 package com.vkras.db.kafka.sync.config;
 
 import com.vkras.db.kafka.sync.service.KafkaSyncEntityListener;
+import jakarta.persistence.EntityManager;
 import org.apache.kafka.clients.producer.KafkaProducer;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.autoconfigure.kafka.KafkaProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
+import org.springframework.core.io.Resource;
 
 import java.util.Properties;
 
@@ -29,6 +34,14 @@ public class KafkaDbSyncAutoConfiguration {
         Properties properties = new Properties();
         properties.putAll(kafkaProperties.getProperties());
         return new KafkaProducer<>(properties);
+    }
+
+    @Bean
+    @ConditionalOnProperty(name = "com.spring.kafka.db.synchronize.initDb")
+    @ConditionalOnBean(EntityManager.class)
+    public DbSchemaMigration dbSchemaMigration(@Value("classpath:db/init_offset_table.sql") Resource initScript,
+                                               EntityManager entityManager){
+        return new DbSchemaMigration(initScript, entityManager);
     }
 
     @Bean
