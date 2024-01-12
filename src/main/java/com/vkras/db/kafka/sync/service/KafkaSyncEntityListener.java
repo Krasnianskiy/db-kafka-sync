@@ -12,40 +12,41 @@ import org.hibernate.event.spi.PostUpdateEvent;
 import org.hibernate.event.spi.PostUpdateEventListener;
 import org.hibernate.persister.entity.EntityPersister;
 
+import java.util.Objects;
+
 @Slf4j
 public class KafkaSyncEntityListener implements PostUpdateEventListener {
 
     private final SynchronizedProperties properties;
 
-    private final KafkaProducer<String, Object> kafkaProducer;
+    private final DbKafkaProducer kafkaProducer;
     public KafkaSyncEntityListener(SynchronizedProperties synchronizedProperties,
-                                   KafkaProducer<String, Object> kafkaProducer) {
+                                   DbKafkaProducer kafkaProducer) {
         this.properties = synchronizedProperties;
         this.kafkaProducer = kafkaProducer;
     }
 
+    /**
+     * Checking if saving entity has {@link SynchronizedTable} annotation
+     * if it passed then sending message with this entity to kafka
+     * if sending the message failed, then rollback transaction
+     * @param postUpdateEvent - Hibernate update event
+     */
     @Override
     @SuppressWarnings("unchecked")
     public void onPostUpdate(PostUpdateEvent postUpdateEvent) {
         Object entity = postUpdateEvent.getEntity();
         Class<?> type = entity.getClass();
         if (type.isAnnotationPresent(Entity.class) && type.isAnnotationPresent(SynchronizedTable.class)){
-            // table name as a topic
-            String tableName = type.getAnnotation(Table.class).name();
-            try {
-                Converter converter = type.getAnnotation(SynchronizedTable.class).converter().newInstance();
-                Object resultEntity = converter.convert(entity);
-                ProducerRecord<String, Object> record = new ProducerRecord<>(tableName, resultEntity);
-                kafkaProducer.send(record, (recordMetadata, e) -> {
+            kafkaProducer.sendSyncMessage(entity, (recordMetadata, e) -> {
+                if (Objects.nonNull(e)){
                     // During the producer error - rollback data save
                     log.error("Error sending message to Kafka, \n Partition: {}, \n Error: {}",
                             recordMetadata.partition(), e.getMessage());
                     postUpdateEvent.getSession().getTransaction().rollback();
-                });
-                postUpdateEvent.getSession().getTransaction().rollback();
-            } catch (InstantiationException | IllegalAccessException e) {
-                throw new RuntimeException(e);
-            }
+                }
+            });
+            postUpdateEvent.getSession().getTransaction().rollback();
         }
     }
 

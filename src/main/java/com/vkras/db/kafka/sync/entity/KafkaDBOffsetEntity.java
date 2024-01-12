@@ -4,11 +4,13 @@ import com.vkras.db.kafka.sync.utils.ConsumerStatus;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import lombok.Builder;
 import lombok.Data;
 
 @Entity
 @Table(name = "kafka_db_sync")
 @Data
+@Builder
 public class KafkaDBOffsetEntity {
     @Id
     private String tableName;

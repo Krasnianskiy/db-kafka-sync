@@ -1,5 +1,6 @@
 package com.vkras.db.kafka.sync.config;
 
+import com.vkras.db.kafka.sync.service.DbKafkaProducer;
 import com.vkras.db.kafka.sync.service.KafkaSyncEntityListener;
 import jakarta.persistence.EntityManager;
 import org.apache.kafka.clients.producer.KafkaProducer;
@@ -29,12 +30,14 @@ public class KafkaDbSyncAutoConfiguration {
         this.kafkaProperties = kafkaProperties;
     }
 
+    /*
     @Bean
     public KafkaProducer<String, Object> producer(){
         Properties properties = new Properties();
         properties.putAll(kafkaProperties.getProperties());
         return new KafkaProducer<>(properties);
     }
+     */
 
     @Bean
     @ConditionalOnProperty(name = "com.spring.kafka.db.synchronize.initDb")
@@ -46,7 +49,15 @@ public class KafkaDbSyncAutoConfiguration {
 
     @Bean
     @ConditionalOnMissingBean
+    public DbKafkaProducer dbKafkaProducer(){
+        Properties properties = new Properties();
+        properties.putAll(kafkaProperties.getProperties());
+        return new DbKafkaProducer(properties);
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
     public KafkaSyncEntityListener entityListener(){
-        return new KafkaSyncEntityListener(synchronizedProperties, producer());
+        return new KafkaSyncEntityListener(synchronizedProperties, dbKafkaProducer());
     }
 }
