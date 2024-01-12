@@ -3,7 +3,6 @@ package com.vkras.db.kafka.sync.config;
 import com.vkras.db.kafka.sync.service.DbKafkaProducer;
 import com.vkras.db.kafka.sync.service.KafkaSyncEntityListener;
 import jakarta.persistence.EntityManager;
-import org.apache.kafka.clients.producer.KafkaProducer;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;

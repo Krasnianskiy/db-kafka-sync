@@ -1,13 +1,9 @@
 package com.vkras.db.kafka.sync.service;
 
 import com.vkras.db.kafka.sync.annotation.SynchronizedTable;
-import com.vkras.db.kafka.sync.annotation.handlers.Converter;
 import com.vkras.db.kafka.sync.config.SynchronizedProperties;
 import jakarta.persistence.Entity;
-import jakarta.persistence.Table;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.kafka.clients.producer.KafkaProducer;
-import org.apache.kafka.clients.producer.ProducerRecord;
 import org.hibernate.event.spi.PostUpdateEvent;
 import org.hibernate.event.spi.PostUpdateEventListener;
 import org.hibernate.persister.entity.EntityPersister;
